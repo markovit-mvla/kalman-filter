@@ -45,9 +45,9 @@ class DriveTrainPoseEstimator
             backLeftLocation_, backRightLocation_
         };
 
-        /* Need to use robot gains */
         frc::SwerveDrivePoseEstimator estimator_{
             frc::Rotation2d, frc::Pose2d, kinematics_, 
+            /* Need to test and determine hyperparameters */
             {0.1, 0.1, 0.1}, {0.05}, {0.1, 0.1, 0.1}
         };
 
