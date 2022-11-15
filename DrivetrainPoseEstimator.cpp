@@ -29,9 +29,12 @@ void DrivetrainPoseEstimator::UpdateOdometry()
     estimator_.Update(gyro_.GetRotation2d(), frontLeft_.getState(),
         frontRight_.getState(), backLeft_.getState(), backRight_.getState());
 
+    frc::Pose2d curr = limelight_.getPose();
+    frc::Pose2d{ curr.X() - curr.getXOff(), curr.Y() - curr.getYOff() } update; 
+
     estimator_.AddVisionMeasurement(
-        limelight_.getPose,
-        frc::Timer::GetFPGATimestamp() - 0.3_s;
+        update,
+        frc::Timer::GetFPGATimestamp() - 0.3_s
     );
 }
 
