@@ -1,26 +1,56 @@
 #pragma once
 
-#include "frc/estimator/SwerveDrivePoseEstimator"
-#include "frc/StateSpaceUtil.h"
-#include "SwerveDrive.h"
 #include <frc/AnalogGyro.h>
-#include "Limelight.h"
+#include <frc/estimator/SwerveDrivePoseEstimator.h>
+#include <frc/geometry/Translation2d.h>
+#include <frc/kinematics/SwerveDriveKinematics.h>
+#include <frc/kinematics/SwerveDriveOdometry.h>
+#include <wpi/numbers>
 
+#include "Limelight.h"
+#include "SwerveModule.h"
+#include "Constants.h"
+
+/**
+* Drivetrain for SwerveDrive
+*/
 class DriveTrainPoseEstimator
 {
     public:
-        DriveTrainPoseEstimator() { network_table = Limelight::GetNetworkTable() };
-        void update(frc::DifferentialDriveWheelSpeeds wheelSpeeds, double leftDist, double rightDist);
+        DriveTrainPoseEstimator() { gyro_.Reset(); };
+
+        void UpdateOdometry();
+
+        void Drive(
+            units::meters_per_second_t xSpeed, units::meters_per_second_t ySpeed,
+            units::radians_per_second_t rot, bool field_relative);
+
         void resetToPose(frc::Pose2d pose);
+
         frc::Pose2d getPoseEst();
     private:
-        frc::SwerveDrivePoseEstimator estimator_{
-            frc::Rotation2d, frc::Pose2d,
-            frc::MakeMatrix<5, 1>(0.01, 0.01, 0.01, 0.01, 0.01),
-            frc::MakeMatrix<3, 1>(0.01, 0.01, 0.01),
-            frc::MakeMatrix<3, 1>(0.01, 0.01, 0.01)
-        };
-        frc::AnalogGyro gyro{0};
-        std::shared_ptr<nt::NetworkTable> network_table;
-}
+        /* Possibly need to adjust numbers */
+        frc::Translation2d frontLeftLocation_{+0.381_m, +0.381_m};
+        frc::Translation2d frontRightLocation_{+0.381_m, -0.381_m};
+        frc::Translation2d backLeftLocation_{-0.381_m, +0.381_m};
+        frc::Translation2d backRightLocation_{-0.381_m, -0.381_m};
 
+        SwerveModule frontLeft_{1, 2, 0, 1, 2, 3};
+        SwerveModule frontRight_{3, 4, 4, 5, 6, 7};
+        SwerveModule backLeft_{5, 6, 8, 9, 10, 11};
+        SwerveModule backRight_{7, 8, 12, 13, 14, 15};
+
+        frc::SwerveDriveKinematics<4> kinematics_{
+            frontLeftLocation_, frontRightLocation_,
+            backLeftLocation_, backRightLocation_
+        };
+
+        /* Need to use robot gains */
+        frc::SwerveDrivePoseEstimator estimator_{
+            frc::Rotation2d, frc::Pose2d, kinematics_, 
+            {0.1, 0.1, 0.1}, {0.05}, {0.1, 0.1, 0.1}
+        };
+
+        frc::AnalogGyro gyro_{0};
+        Limelight * limelight_;
+}
